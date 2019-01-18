@@ -1,13 +1,15 @@
-package com.example.rajshekhar.screen_share007;
+package com.example.rajshekhar.screen_share007_with_notification;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
-import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
@@ -18,7 +20,6 @@ import android.os.Environment;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -111,7 +112,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -127,7 +127,6 @@ public class MainActivity extends AppCompatActivity {
             textView.setText("Screen Cast Permission Denied");
             mToggleButton.setChecked(false);
             mMediaRecorder.reset();
-
             return;
         }
 
@@ -136,6 +135,36 @@ public class MainActivity extends AppCompatActivity {
         mMediaProjection.registerCallback(mMediaProjectionCallback, null);
         mVirtualDisplay = createVirtualDisplay();
         mMediaRecorder.start();
+        Toast.makeText(this,"Yes Permission Get",Toast.LENGTH_LONG).show();
+        sendNotification();
+
+
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+    private void sendNotification() {
+        Notification.Builder mBuilder =
+                new Notification.Builder(this)
+                        .setSmallIcon(R.drawable.tw)
+                        .setContentTitle("Screen Recorder")
+                        .setContentText("Stop Recording");
+
+        Intent resultIntent = new Intent(this,
+
+                MainActivity.class);
+        resultIntent.setAction(Intent.ACTION_MAIN);
+        resultIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
+                resultIntent, 0);
+
+
+        mBuilder.setContentIntent(pendingIntent);
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        mNotificationManager.notify(1, mBuilder.build());
+
+
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -144,15 +173,26 @@ public class MainActivity extends AppCompatActivity {
         if (((ToggleButton) view).isChecked()) {
             initRecorder();
             shareScreen();
+            Toast.makeText(this, "On : Notification will be Enabled", Toast.LENGTH_SHORT).show();
+
             textView.setText("Now Screen Recording start..");
         } else {
+            Toast.makeText(this, "Off : Notification will be Disabled", Toast.LENGTH_SHORT).show();
             textView.setText("Stop Screen Recording");
-
             mMediaRecorder.stop();
             mMediaRecorder.reset();
             Log.v(TAG, "Stopping Recording");
             stopScreenSharing();
+            stopNotification();
+
+
         }
+    }
+
+    private void stopNotification() {
+        String ns=Context.NOTIFICATION_SERVICE;
+        NotificationManager notificationManager=(NotificationManager)getApplicationContext().getSystemService(ns);
+        notificationManager.cancel(1);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -176,6 +216,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initRecorder() {
+
+
 
 //        final String directory = Environment.getExternalStorageDirectory() + File.separator + "Recordings";
 //        if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
@@ -201,10 +243,33 @@ public class MainActivity extends AppCompatActivity {
             mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
             mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
 
+            final String directory = Environment.getExternalStorageDirectory() + File.separator + "Recordings Screen";
+            if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
+                Toast.makeText(this, "Failed to get External Storage", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            final File folder = new File(directory);
+            boolean success = true;
+            if (!folder.exists()) {
+                success = folder.mkdir();
+            }
 
-            mMediaRecorder.setOutputFile(Environment
+            String filePath;
+            if (success) {
+                String videoName = ("capture_" + getCurSysDate() + ".mp4");
+                filePath = directory + File.separator + videoName;
+            } else {
+                Toast.makeText(this, "Failed to create Recordings directory", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+               //Single file add
+        /*    mMediaRecorder.setOutputFile(Environment
                     .getExternalStoragePublicDirectory(Environment
-                            .DIRECTORY_MOVIES) + "/video.mp4");
+                            .DIRECTORY_MOVIES) + "/video.mp4");*/
+
+             mMediaRecorder.setOutputFile(filePath);
+
             mMediaRecorder.setVideoSize(DISPLAY_WIDTH, DISPLAY_HEIGHT);
             mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
             mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
@@ -214,7 +279,6 @@ public class MainActivity extends AppCompatActivity {
             int orientation = ORIENTATIONS.get(rotation + 90);
             mMediaRecorder.setOrientationHint(orientation);
             mMediaRecorder.prepare();
-//            mMediaRecorder.setOutputFile(filePath);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -279,8 +343,6 @@ public class MainActivity extends AppCompatActivity {
                 if ((grantResults.length > 0) && (grantResults[0] +
                         grantResults[1]) == PackageManager.PERMISSION_GRANTED) {
                     onToggleScreenShare(mToggleButton);
-
-
                 } else {
                     mToggleButton.setChecked(false);
 

@@ -1,4 +1,4 @@
-package com.example.rajshekhar.screen_share007;
+package com.example.rajshekhar.screen_share007_with_notification;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
