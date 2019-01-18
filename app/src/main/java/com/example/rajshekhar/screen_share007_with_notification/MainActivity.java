@@ -184,8 +184,6 @@ public class MainActivity extends AppCompatActivity {
             Log.v(TAG, "Stopping Recording");
             stopScreenSharing();
             stopNotification();
-
-
         }
     }
 
@@ -216,28 +214,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initRecorder() {
-
-
-
-//        final String directory = Environment.getExternalStorageDirectory() + File.separator + "Recordings";
-//        if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
-//            Toast.makeText(this, "Failed to get External Storage", Toast.LENGTH_SHORT).show();
-//            return;
-//        }
-//        final File folder = new File(directory);
-//        boolean success = true;
-//        if (!folder.exists()) {
-//            success = folder.mkdir();
-//        }
-//
-//        String filePath;
-//        if (success) {
-//            String videoName = ("capture_" + getCurSysDate() + ".mp4");
-//            filePath = directory + File.separator + videoName;
-//        } else {
-//            Toast.makeText(this, "Failed to create Recordings directory", Toast.LENGTH_SHORT).show();
-//            return;
-//        }
         try {
             mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
             mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
@@ -262,7 +238,6 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "Failed to create Recordings directory", Toast.LENGTH_SHORT).show();
                 return;
             }
-
                //Single file add
         /*    mMediaRecorder.setOutputFile(Environment
                     .getExternalStoragePublicDirectory(Environment
